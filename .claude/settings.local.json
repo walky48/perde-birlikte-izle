@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(cp js/ui.js ui.chk.mjs)",
-      "Bash(node --check ui.chk.mjs)",
-      "Bash(rm ui.chk.mjs)"
-    ]
-  }
-}
