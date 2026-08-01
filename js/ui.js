@@ -150,7 +150,6 @@ export class UIManager {
     b.textContent = byId === S.myId
       ? '🖥 Ekranını paylaşıyorsun'
       : '🖥 ' + (name || S.nameOf(byId)) + ' ekranını paylaşıyor';
-    $('#screenFsBtn').hidden = false;
   }
 
   hideScreenStream() {
@@ -159,15 +158,15 @@ export class UIManager {
     v.srcObject = null;
     v.style.display = 'none';
     $('#screenBadge').hidden = true;
-    $('#screenFsBtn').hidden = true;
-    if (this.#isFullscreen()) this.#exitFullscreen();
   }
 
 
   #wireFullscreen() {
-    const v = $('#screenVid');
-    $('#screenFsBtn').onclick = () => this.#toggleFullscreen();
-    v.addEventListener('dblclick', () => this.#toggleFullscreen());
+    $('#fsBtn').onclick = () => this.#toggleFullscreen();
+    $('#playerBox').addEventListener('dblclick', e => {
+      if (e.target.closest('#fsBtn') || e.target.closest('#localBanner')) return;
+      this.#toggleFullscreen();
+    });
     ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
       document.addEventListener(ev, () => this.#syncFsIcon())
     );
@@ -178,15 +177,21 @@ export class UIManager {
   }
 
   #syncFsIcon() {
-    $('#screenFsBtn').textContent = this.#isFullscreen() ? '⤢' : '⛶';
+    $('#fsBtn').textContent = this.#isFullscreen() ? '⤢' : '⛶';
   }
 
   #toggleFullscreen() {
     if (this.#isFullscreen()) { this.#exitFullscreen(); return; }
-    const v = $('#screenVid');
-    if (v.requestFullscreen) v.requestFullscreen().catch(() => {});
-    else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen();
-    else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
+
+    const stage = $('#stage');
+    if (stage.requestFullscreen) stage.requestFullscreen().catch(() => this.#fallbackVideoFullscreen());
+    else if (stage.webkitRequestFullscreen) stage.webkitRequestFullscreen();
+    else this.#fallbackVideoFullscreen();
+  }
+
+  #fallbackVideoFullscreen() {
+    const v = this.state.screen && this.state.screenBy != null ? $('#screenVid') : $('#vid');
+    if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
     else toast('Bu tarayıcı tam ekranı desteklemiyor');
   }
 

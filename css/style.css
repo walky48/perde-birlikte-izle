@@ -63,10 +63,17 @@ select{padding:8px}
 #ytWrap iframe,#ytWrap>div{width:100%;height:100%}
 #playerMsg{position:absolute;left:0;right:0;top:40%;text-align:center;color:var(--mut);font-size:14px;pointer-events:none;padding:0 30px;line-height:1.6}
 #screenVid{position:absolute;inset:0;width:100%;height:100%;background:#000;display:none;z-index:4;object-fit:contain}
-#screenVid:fullscreen,#screenVid:-webkit-full-screen{object-fit:contain;background:#000}
 #screenBadge{position:absolute;top:10px;left:10px;z-index:6;background:rgba(14,17,24,.85);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--amber2)}
-#screenFsBtn{position:absolute;top:10px;right:10px;z-index:6;width:36px;height:36px;padding:0;font-size:18px;line-height:1;background:rgba(14,17,24,.85)}
+#fsBtn{position:absolute;top:10px;right:10px;z-index:6;width:36px;height:36px;padding:0;font-size:18px;line-height:1;background:rgba(14,17,24,.85)}
 #shareBtn.on{border-color:var(--amber);color:var(--amber2);background:#2a2413}
+
+/* ---------- Tam ekran (kameralar #stage içinde kaldığı için üstte görünür) ---------- */
+#stage:fullscreen,#stage:-webkit-full-screen{position:fixed;inset:0;top:0;padding:0;background:#000}
+#stage:fullscreen #urlRow,#stage:-webkit-full-screen #urlRow,
+#stage:fullscreen #ctrlBar,#stage:-webkit-full-screen #ctrlBar{display:none}
+#stage:fullscreen #playerWrap,#stage:-webkit-full-screen #playerWrap{gap:0}
+#stage:fullscreen #playerBox,#stage:-webkit-full-screen #playerBox{border:none;border-radius:0}
+#stage:fullscreen #tiles,#stage:-webkit-full-screen #tiles{z-index:20}
 #localBanner{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;background:rgba(10,13,19,.9);text-align:center;padding:24px}
 #localBanner[hidden]{display:none}
 #localBanner p{color:var(--ink);font-size:15px;line-height:1.65;max-width:440px}
