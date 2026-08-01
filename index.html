@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Perde — Birlikte İzle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="lobby">
+  <div class="card">
+    <div class="logo">Perde<em>.</em></div>
+    <p class="tag">Aynı videoyu saniyesi saniyesine birlikte izleyin; kamerayla birbirinizi görüp konuşun.</p>
+    <input type="text" id="nameInput" placeholder="Adın" maxlength="20" autocomplete="off">
+    <label class="chk"><input type="checkbox" id="camOnly"> Bu cihaz yalnızca kamera olsun (telefonu kamera olarak kullan)</label>
+    <div id="lobbyBtns">
+      <button id="createBtn" class="primary">Oda kur</button>
+      <div class="or">veya</div>
+      <div class="joinRow">
+        <input type="text" id="codeInput" placeholder="ODA KODU" maxlength="8" autocomplete="off">
+        <button id="joinBtn">Katıl</button>
+      </div>
+    </div>
+    <div id="lobbyWait">Bağlanıyor…</div>
+    <div id="lobbyErr" class="err"></div>
+    <div class="hint"><b>Kamerasız bilgisayar için:</b> Bilgisayardan odaya normal katıl, telefonundan da aynı odaya "kamera modu"nda gir. Telefonun kameran olur; diziyi ve karşı tarafı bilgisayar ekranından izlersin.</div>
+  </div>
+</div>
+
+<header id="topbar" hidden>
+  <div class="brand">Perde.</div>
+  <div class="roomChip">Oda <b id="roomCode"></b> <button id="copyBtn" title="Oda kodunu kopyala">Kopyala</button></div>
+  <div id="peers"></div>
+  <div class="grow"></div>
+  <button id="micBtn" title="Mikrofonu aç/kapat">🎙</button>
+  <button id="camBtn" title="Kamerayı aç/kapat">📷</button>
+  <button id="syncBtn" title="Herkesi kendi zamanına getir">⟳ <span>Senkronla</span></button>
+  <button id="leaveBtn" class="danger">Ayrıl</button>
+</header>
+
+<main id="stage" hidden>
+  <section id="playerWrap">
+    <div id="urlRow">
+      <input type="text" id="urlInput" placeholder="Video bağlantısını yapıştır (mp4 · m3u8 · YouTube)" autocomplete="off">
+      <button id="loadBtn" class="primary">Yükle</button>
+      <label class="fileBtn" for="vidFile" title="Cihazındaki video dosyasını aç">Dosya aç</label>
+      <input type="file" id="vidFile" accept="video/*,.mkv,.mp4,.webm,.mov,.m4v,.avi" hidden>
+    </div>
+    <div id="playerBox">
+      <video id="vid" playsinline></video>
+      <div id="ytWrap"><div id="ytBox"></div></div>
+      <div id="playerMsg">Bir bağlantı yükleyin ya da "Dosya aç" ile cihazınızdaki videoyu seçin.<br>İki taraf da aynı dosyayı seçince oynatma, hız ve altyazı saniyesi saniyesine senkron gider.</div>
+      <div id="localBanner" hidden>
+        <p id="localBannerTxt"></p>
+        <button id="pickLocalBtn" class="primary">Aynı dosyayı bu cihazdan seç</button>
+      </div>
+    </div>
+    <div id="ctrlBar">
+      <button id="playBtn" title="Oynat/Duraklat">▶</button>
+      <button id="back10">−10 sn</button>
+      <button id="fwd10">+10 sn</button>
+      <input type="range" id="seekBar" min="0" max="1000" value="0">
+      <span id="timeLbl">0:00 / 0:00</span>
+      <select id="speedSel" title="Oynatma hızı">
+        <option value="0.5">0.5×</option><option value="0.75">0.75×</option>
+        <option value="1" selected>1×</option><option value="1.25">1.25×</option>
+        <option value="1.5">1.5×</option><option value="2">2×</option>
+      </select>
+      <label class="fileBtn" for="subFile" title="Altyazı dosyası yükle (.srt / .vtt)">Altyazı yükle</label>
+      <input type="file" id="subFile" accept=".srt,.vtt" hidden>
+      <button id="subToggle" title="Altyazıyı aç/kapat">CC</button>
+    </div>
+  </section>
+  <div id="camModeNote">📱 <b>Kamera modu açık.</b><br>Görüntün ve sesin odadaki herkese gidiyor.<br><small>Diziyi diğer ekrandan izlemeye devam et.</small></div>
+  <div id="tiles"></div>
+</main>
+
+<button id="gestureBtn" style="display:none">▶ Ses ve görüntüyü başlatmak için dokun</button>
+<div id="toasts"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
