@@ -26,6 +26,7 @@ export class UIManager {
     this.#wireTopbar();
     this.#wirePlayerControls();
     this.#wireGesture();
+    this.#wireFullscreen();
   }
 
  
@@ -149,6 +150,7 @@ export class UIManager {
     b.textContent = byId === S.myId
       ? '🖥 Ekranını paylaşıyorsun'
       : '🖥 ' + (name || S.nameOf(byId)) + ' ekranını paylaşıyor';
+    $('#screenFsBtn').hidden = false;
   }
 
   hideScreenStream() {
@@ -157,6 +159,40 @@ export class UIManager {
     v.srcObject = null;
     v.style.display = 'none';
     $('#screenBadge').hidden = true;
+    $('#screenFsBtn').hidden = true;
+    if (this.#isFullscreen()) this.#exitFullscreen();
+  }
+
+
+  #wireFullscreen() {
+    const v = $('#screenVid');
+    $('#screenFsBtn').onclick = () => this.#toggleFullscreen();
+    v.addEventListener('dblclick', () => this.#toggleFullscreen());
+    ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
+      document.addEventListener(ev, () => this.#syncFsIcon())
+    );
+  }
+
+  #isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+
+  #syncFsIcon() {
+    $('#screenFsBtn').textContent = this.#isFullscreen() ? '⤢' : '⛶';
+  }
+
+  #toggleFullscreen() {
+    if (this.#isFullscreen()) { this.#exitFullscreen(); return; }
+    const v = $('#screenVid');
+    if (v.requestFullscreen) v.requestFullscreen().catch(() => {});
+    else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen();
+    else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
+    else toast('Bu tarayıcı tam ekranı desteklemiyor');
+  }
+
+  #exitFullscreen() {
+    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
   }
 
   onScreenInfo(d) {
