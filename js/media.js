@@ -37,6 +37,31 @@ export class MediaManager {
 
   stopAll() {
     try { this.state.local && this.state.local.getTracks().forEach(t => t.stop()); } catch (e) {}
+    this.stopScreenShare();
+  }
+
+  async startScreenShare() {
+    const S = this.state;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+      toast('Bu tarayıcıda ekran paylaşımı desteklenmiyor', 4000);
+      return null;
+    }
+    try {
+      S.screen = await navigator.mediaDevices.getDisplayMedia({
+        video: { frameRate: { ideal: 30 } },
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+      });
+      if (!S.screen.getAudioTracks().length) {
+        toast('Görüntü gidiyor ama ses yok. Film sesi de gitsin istiyorsan paylaşırken "Chrome Sekmesi"ni seç ve "Sesi de paylaş" kutusunu işaretle.', 7000);
+      }
+      return S.screen;
+    } catch (e) { return null; }
+  }
+
+  stopScreenShare() {
+    const S = this.state;
+    try { S.screen && S.screen.getTracks().forEach(t => t.stop()); } catch (e) {}
+    S.screen = null;
   }
 
   toggleMic() {

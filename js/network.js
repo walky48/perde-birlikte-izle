@@ -8,9 +8,11 @@ export class NetworkManager {
     this.state = state;
 
     this.peer = null;
-    this.hostConn = null;  
-    this.conns = {};       
-    this.calls = {};       
+    this.hostConn = null;
+    this.conns = {};
+    this.calls = {};
+    this.screenCalls = {};
+    this.screenIn = null;
 
     this.ui = null;
     this.tiles = null;
@@ -63,6 +65,7 @@ export class NetworkManager {
     });
 
     this.peer.on('call', call => {
+      if (call.metadata && call.metadata.screen) { this.#wireScreenIn(call); return; }
       if (this.calls[call.peer]) { try { this.calls[call.peer].close(); } catch (e) {} }
       call.answer(S.local);
       this.#wireCall(call);
@@ -147,6 +150,7 @@ export class NetworkManager {
         } catch (e) {}
         this.#broadcast({ t: 'roster', roster: S.roster }, from);
         this.ui.refreshRoster();
+        this.syncScreenCalls();
         toast(S.roster[from].name + ' katıldı' + (S.roster[from].mode === 'camera' ? ' (kamera modu)' : ''));
         break;
       }
@@ -161,6 +165,12 @@ export class NetworkManager {
         S.roster = d.roster || {};
         this.ui.refreshRoster();
         this.#callNewPeers();
+        this.syncScreenCalls();
+        break;
+      }
+      case 'screen': {
+        if (d.by !== S.myId) this.ui.onScreenInfo(d);
+        if (S.isHost) this.#broadcast(d, from);
         break;
       }
       case 'state': {
@@ -208,6 +218,49 @@ export class NetworkManager {
 
   #dropPeerMedia(id) {
     if (this.calls[id]) { try { this.calls[id].close(); } catch (e) {} delete this.calls[id]; }
+    if (this.screenCalls[id]) { try { this.screenCalls[id].close(); } catch (e) {} delete this.screenCalls[id]; }
+    if (this.screenIn && this.screenIn.id === id) {
+      try { this.screenIn.call.close(); } catch (e) {}
+      this.screenIn = null;
+      this.ui.hideScreenStream();
+    }
     this.tiles.removeTile(id);
+  }
+
+  startScreen() {
+    this.send({ t: 'screen', on: true, by: this.state.myId, name: this.state.name });
+    this.syncScreenCalls();
+  }
+
+  stopScreen() {
+    Object.keys(this.screenCalls).forEach(id => { try { this.screenCalls[id].close(); } catch (e) {} });
+    this.screenCalls = {};
+    this.send({ t: 'screen', on: false, by: this.state.myId });
+  }
+
+  syncScreenCalls() {
+    const S = this.state;
+    if (!S.screen || !this.peer) return;
+    Object.keys(S.roster).forEach(id => {
+      if (id === S.myId || this.screenCalls[id]) return;
+      try {
+        const call = this.peer.call(id, S.screen, { metadata: { screen: true, name: S.name } });
+        if (!call) return;
+        this.screenCalls[id] = call;
+        call.on('close', () => { if (this.screenCalls[id] === call) delete this.screenCalls[id]; });
+        call.on('error', e => console.warn('screen call error', e));
+      } catch (e) { console.warn('screen call fail', e); }
+    });
+  }
+
+  #wireScreenIn(call) {
+    try { call.answer(); } catch (e) {}
+    if (this.screenIn) { try { this.screenIn.call.close(); } catch (e) {} }
+    this.screenIn = { id: call.peer, call };
+    call.on('stream', st => this.ui.showScreenStream(call.peer, st, call.metadata && call.metadata.name));
+    call.on('close', () => {
+      if (this.screenIn && this.screenIn.call === call) { this.screenIn = null; this.ui.hideScreenStream(); }
+    });
+    call.on('error', e => console.warn('screen call error', e));
   }
 }

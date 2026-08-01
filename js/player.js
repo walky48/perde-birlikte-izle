@@ -109,7 +109,7 @@ export class VideoPlayer {
   #onVidError() {
     const S = this.state;
     if (S.cur.kind === 'file' && !S.cur.local) {
-      $('#playerMsg').innerHTML = 'Bu bağlantı açılamadı — sayfa linkleri (dizi/film siteleri) tarayıcı tarafından engellendiği için hiçbir sitede oynatılamaz.<br><b>En garantili yol:</b> Bölümü iki taraf da indirsin, "Dosya aç" ile seçsin. Gerisi otomatik senkronlanır.';
+      $('#playerMsg').innerHTML = 'Bu bağlantı doğrudan açılamadı — dizi/film siteleri video dosyası değil sayfa linki verir, tarayıcı güvenliği bunu engeller.<br><b>Çözüm:</b> Filmi kendi sekmende aç, üstteki <b>🖥 Ekran paylaş</b> ile o sekmeyi sesiyle birlikte paylaş.<br>Alternatif: İki taraf da bölümü indirip "Dosya aç" ile seçsin — otomatik senkronlanır.';
     }
   }
 

@@ -1,6 +1,6 @@
 
 import { $, rid, toast, fmtT } from './utils.js';
-import { hideGestureButton } from './gesture.js';
+import { hideGestureButton, showGestureButton } from './gesture.js';
 
 export class UIManager {
   constructor(state, { media, network, player, sync, subtitles, tiles }) {
@@ -104,11 +104,64 @@ export class UIManager {
       catch (e) { prompt('Oda kodu:', room); }
     };
     $('#syncBtn').onclick = () => { this.sync.emitNow(); toast('Herkes senin zamanına senkronlandı', 2200); };
+    $('#shareBtn').onclick = () => this.#toggleShare();
     $('#leaveBtn').onclick = () => {
       this.network.disconnect();
       this.media.stopAll();
       location.reload();
     };
+  }
+
+  async #toggleShare() {
+    const S = this.state;
+    if (S.mode === 'camera') { toast('Kamera modundaki cihazdan ekran paylaşılamaz'); return; }
+    if (S.screen) { this.#endShare(); return; }
+    const st = await this.media.startScreenShare();
+    if (!st) return;
+    const vt = st.getVideoTracks()[0];
+    if (vt) vt.addEventListener('ended', () => this.#endShare());
+    this.network.startScreen();
+    this.showScreenStream(S.myId, st, S.name);
+    $('#shareBtn').classList.add('on');
+    toast('Ekran paylaşımı başladı — film sekmesini açık tut, buradaki önizleme karşı tarafın gördüğüdür', 5000);
+  }
+
+  #endShare() {
+    if (!this.state.screen) return;
+    this.media.stopScreenShare();
+    this.network.stopScreen();
+    $('#shareBtn').classList.remove('on');
+    this.hideScreenStream();
+    toast('Ekran paylaşımı durduruldu', 2000);
+  }
+
+  showScreenStream(byId, stream, name) {
+    const S = this.state;
+    if (S.mode === 'camera') return;
+    S.screenBy = byId;
+    const v = $('#screenVid');
+    v.muted = (byId === S.myId);
+    v.srcObject = stream;
+    v.style.display = 'block';
+    v.play().catch(() => showGestureButton());
+    const b = $('#screenBadge');
+    b.hidden = false;
+    b.textContent = byId === S.myId
+      ? '🖥 Ekranını paylaşıyorsun'
+      : '🖥 ' + (name || S.nameOf(byId)) + ' ekranını paylaşıyor';
+  }
+
+  hideScreenStream() {
+    this.state.screenBy = null;
+    const v = $('#screenVid');
+    v.srcObject = null;
+    v.style.display = 'none';
+    $('#screenBadge').hidden = true;
+  }
+
+  onScreenInfo(d) {
+    if (d.on) toast((d.name || 'Biri') + ' ekran paylaşımı başlattı', 3000);
+    else this.hideScreenStream();
   }
 
   
@@ -183,6 +236,8 @@ export class UIManager {
     $('#gestureBtn').onclick = () => {
       hideGestureButton();
       this.tiles.resumeAll();
+      const sv = $('#screenVid');
+      if (sv && sv.srcObject) sv.play().catch(() => {});
       if (this.state.lastState && this.state.lastState.playing) this.player.play();
     };
   }

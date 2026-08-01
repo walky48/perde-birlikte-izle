@@ -37,6 +37,7 @@
   <div class="grow"></div>
   <button id="micBtn" title="Mikrofonu aç/kapat">🎙</button>
   <button id="camBtn" title="Kamerayı aç/kapat">📷</button>
+  <button id="shareBtn" title="Ekranını sesiyle birlikte paylaş (film sitesi sekmesi için)">🖥 <span>Ekran paylaş</span></button>
   <button id="syncBtn" title="Herkesi kendi zamanına getir">⟳ <span>Senkronla</span></button>
   <button id="leaveBtn" class="danger">Ayrıl</button>
 </header>
@@ -52,7 +53,9 @@
     <div id="playerBox">
       <video id="vid" playsinline></video>
       <div id="ytWrap"><div id="ytBox"></div></div>
-      <div id="playerMsg">Bir bağlantı yükleyin ya da "Dosya aç" ile cihazınızdaki videoyu seçin.<br>İki taraf da aynı dosyayı seçince oynatma, hız ve altyazı saniyesi saniyesine senkron gider.</div>
+      <div id="playerMsg">Bir bağlantı yükleyin, "Dosya aç" ile cihazınızdaki videoyu seçin<br>ya da dizi/film sitesi izliyorsanız üstteki <b>🖥 Ekran paylaş</b> ile o sekmeyi sesiyle birlikte paylaşın.</div>
+      <video id="screenVid" playsinline></video>
+      <div id="screenBadge" hidden></div>
       <div id="localBanner" hidden>
         <p id="localBannerTxt"></p>
         <button id="pickLocalBtn" class="primary">Aynı dosyayı bu cihazdan seç</button>

@@ -16,9 +16,12 @@ export class AppState {
     this.roster = {};   
 
     
-    this.local = null;  
+    this.local = null;
     this.hasCam = false;
     this.hasMic = false;
+
+    this.screen = null;
+    this.screenBy = null;
 
     
     this.cur = { url: '', kind: '' };
