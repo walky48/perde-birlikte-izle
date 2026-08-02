@@ -1,7 +1,7 @@
 
 
-import { $, toast, fmtMB, escapeHtml } from './utils.js?v=6';
-import { showGestureButton } from './gesture.js?v=6';
+import { $, toast, fmtMB, escapeHtml } from './utils.js?v=7';
+import { showGestureButton } from './gesture.js?v=7';
 
 export class VideoPlayer {
   constructor(state) {

@@ -57,6 +57,8 @@
       <video id="screenVid" playsinline></video>
       <div id="screenBadge" hidden></div>
       <button id="fsBtn" title="Tam ekran (kameralar üstte kalır)">⛶</button>
+      <button id="screenVolBtn" hidden title="Paylaşılan ekranın ses düzeyi">🔊</button>
+      <input type="range" id="screenVolBar" min="0" max="100" value="100" title="Paylaşılan ekranın ses düzeyi">
       <div id="localBanner" hidden>
         <p id="localBannerTxt"></p>
         <button id="pickLocalBtn" class="primary">Aynı dosyayı bu cihazdan seç</button>
@@ -86,6 +88,6 @@
 <div id="toasts"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
-<script type="module" src="js/main.js?v=6"></script>
+<script type="module" src="js/main.js?v=7"></script>
 </body>
 </html>

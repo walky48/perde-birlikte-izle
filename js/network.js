@@ -1,7 +1,7 @@
 
 
-import { toast } from './utils.js?v=6';
-import { ROOM_PREFIX } from './state.js?v=6';
+import { toast } from './utils.js?v=7';
+import { ROOM_PREFIX } from './state.js?v=7';
 
 export class NetworkManager {
   constructor(state) {

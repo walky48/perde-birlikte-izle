@@ -1,5 +1,5 @@
 
-import { $ } from './utils.js?v=6';
+import { $ } from './utils.js?v=7';
 
 export function showGestureButton() {
   $('#gestureBtn').style.display = 'block';

@@ -1,6 +1,6 @@
 
-import { $, rid, toast, fmtT } from './utils.js?v=6';
-import { hideGestureButton, showGestureButton } from './gesture.js?v=6';
+import { $, rid, toast, fmtT } from './utils.js?v=7';
+import { hideGestureButton, showGestureButton } from './gesture.js?v=7';
 
 export class UIManager {
   constructor(state, { media, network, player, sync, subtitles, tiles }) {
@@ -27,6 +27,18 @@ export class UIManager {
     this.#wirePlayerControls();
     this.#wireGesture();
     this.#wireFullscreen();
+    this.#wireScreenVolume();
+  }
+
+  #wireScreenVolume() {
+    const btn = $('#screenVolBtn'), bar = $('#screenVolBar'), v = $('#screenVid');
+    btn.onclick = () => bar.classList.toggle('show');
+    bar.addEventListener('input', e => {
+      const vol = e.target.value / 100;
+      v.volume = vol;
+      v.muted = vol === 0;
+      btn.textContent = vol === 0 ? '🔇' : (vol < 0.5 ? '🔉' : '🔊');
+    });
   }
 
  
@@ -145,6 +157,10 @@ export class UIManager {
     v.srcObject = stream;
     v.style.display = 'block';
     v.play().catch(() => showGestureButton());
+    if (byId !== S.myId) {
+      $('#screenVolBtn').hidden = false;
+      v.volume = $('#screenVolBar').value / 100;
+    }
     const b = $('#screenBadge');
     b.hidden = false;
     b.textContent = byId === S.myId
@@ -158,13 +174,15 @@ export class UIManager {
     v.srcObject = null;
     v.style.display = 'none';
     $('#screenBadge').hidden = true;
+    $('#screenVolBtn').hidden = true;
+    $('#screenVolBar').classList.remove('show');
   }
 
 
   #wireFullscreen() {
     $('#fsBtn').onclick = () => this.#toggleFullscreen();
     $('#playerBox').addEventListener('dblclick', e => {
-      if (e.target.closest('#fsBtn') || e.target.closest('#localBanner')) return;
+      if (e.target.closest('button') || e.target.closest('input') || e.target.closest('#localBanner')) return;
       this.#toggleFullscreen();
     });
     ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
