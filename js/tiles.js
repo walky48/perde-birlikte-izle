@@ -17,6 +17,7 @@ export class TileManager {
     const v = el.querySelector('video');
     v.srcObject = S.local;
     v.play().catch(() => {});
+    this.#matchAspect(v);
     if (!S.hasCam) this.#showAvatar(el, S.name);
   }
 
@@ -26,8 +27,15 @@ export class TileManager {
     const v = el.querySelector('video');
     v.srcObject = stream;
     v.play().catch(() => showGestureButton());
+    this.#matchAspect(v);
     const info = S.roster[id];
     if (info && info.cam === false) this.#showAvatar(el, info.name);
+  }
+
+
+  #matchAspect(v) {
+    const apply = () => { if (v.videoWidth && v.videoHeight) v.style.aspectRatio = v.videoWidth + ' / ' + v.videoHeight; };
+    if (v.videoWidth) apply(); else v.addEventListener('loadedmetadata', apply, { once: true });
   }
 
   removeTile(id) {
@@ -59,7 +67,9 @@ export class TileManager {
     el.style.zIndex = ++this.tileZ;
     el.innerHTML =
       '<div class="tHead"><span class="dot"></span><span class="tName"></span>' +
+      (self ? '' : '<button class="tVol" title="Ses düzeyi">🔊</button>') +
       '<button class="tMin" title="Küçült / büyüt">–</button></div>' +
+      (self ? '' : '<input type="range" class="tVolBar" min="0" max="100" value="100" title="Ses düzeyi">') +
       '<video autoplay playsinline' + (self ? ' muted' : '') + '></video>' +
       '<div class="tAvatar" hidden></div>' +
       '<div class="tGrip" title="Sürükleyerek boyutlandır"></div>';
@@ -75,7 +85,20 @@ export class TileManager {
 
     el.querySelector('.tMin').addEventListener('click', e => { e.stopPropagation(); el.classList.toggle('mini'); });
 
-   
+    if (!self) {
+      const volBtn = el.querySelector('.tVol');
+      const volBar = el.querySelector('.tVolBar');
+      const v = el.querySelector('video');
+      volBtn.addEventListener('click', e => { e.stopPropagation(); el.classList.toggle('showVol'); });
+      volBar.addEventListener('pointerdown', e => e.stopPropagation());
+      volBar.addEventListener('input', e => {
+        const vol = e.target.value / 100;
+        v.volume = vol;
+        volBtn.textContent = vol === 0 ? '🔇' : (vol < 0.5 ? '🔉' : '🔊');
+      });
+    }
+
+
     el.addEventListener('pointerdown', e => {
       if (e.target.closest('.tGrip') || e.target.closest('button')) return;
       el.setPointerCapture(e.pointerId);
