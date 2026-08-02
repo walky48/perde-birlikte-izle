@@ -1,6 +1,6 @@
 
-import { $, rid, toast, fmtT } from './utils.js';
-import { hideGestureButton, showGestureButton } from './gesture.js';
+import { $, rid, toast, fmtT } from './utils.js?v=3';
+import { hideGestureButton, showGestureButton } from './gesture.js?v=3';
 
 export class UIManager {
   constructor(state, { media, network, player, sync, subtitles, tiles }) {

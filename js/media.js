@@ -1,6 +1,6 @@
 
 
-import { toast } from './utils.js';
+import { toast } from './utils.js?v=3';
 
 export class MediaManager {
   constructor(state) {

@@ -1,7 +1,7 @@
 
 
-import { $ } from './utils.js';
-import { showGestureButton } from './gesture.js';
+import { $ } from './utils.js?v=3';
+import { showGestureButton } from './gesture.js?v=3';
 
 export class TileManager {
   constructor(state) {
@@ -44,33 +44,45 @@ export class TileManager {
 
 
   #cropPadding(v) {
-    const run = () => {
-      try {
-        const w = 64, h = Math.max(1, Math.round(w * v.videoHeight / v.videoWidth));
-        const c = document.createElement('canvas'); c.width = w; c.height = h;
-        const ctx = c.getContext('2d', { willReadFrequently: true });
-        ctx.drawImage(v, 0, 0, w, h);
-        const { data } = ctx.getImageData(0, 0, w, h);
-        const rowVar = new Array(h);
-        for (let y = 0; y < h; y++) {
-          let rs = 0, gs = 0, bs = 0;
-          for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; rs += data[i]; gs += data[i + 1]; bs += data[i + 2]; }
-          const ra = rs / w, ga = gs / w, ba = bs / w;
-          let dev = 0;
-          for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; dev += Math.abs(data[i] - ra) + Math.abs(data[i + 1] - ga) + Math.abs(data[i + 2] - ba); }
-          rowVar[y] = dev / w;
-        }
-        let flatFrom = h;
-        for (let y = h - 1; y >= 0; y--) { if (rowVar[y] < 4) flatFrom = y; else break; }
-        const flatFrac = (h - flatFrom) / h;
-        if (flatFrac > 0.12 && flatFrac < 0.6) {
-          v.style.objectFit = 'cover';
-          v.style.objectPosition = '50% 0%';
-          v.style.aspectRatio = v.videoWidth + ' / ' + Math.round(v.videoHeight * (1 - flatFrac));
-        }
-      } catch (e) {}
+    const delays = [350, 800, 1500, 2600, 4200];
+    let i = 0;
+    const attempt = () => {
+      const ok = this.#tryCropPadding(v);
+      if (!ok && ++i < delays.length && !v.paused) setTimeout(attempt, delays[i]);
     };
-    setTimeout(run, 500);
+    setTimeout(attempt, delays[0]);
+  }
+
+  #tryCropPadding(v) {
+    try {
+      if (!v.videoWidth || !v.videoHeight || v.readyState < 2) return false;
+      const w = 64, h = Math.max(1, Math.round(w * v.videoHeight / v.videoWidth));
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const ctx = c.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(v, 0, 0, w, h);
+      const { data } = ctx.getImageData(0, 0, w, h);
+      const rowVar = new Array(h);
+      for (let y = 0; y < h; y++) {
+        let rs = 0, gs = 0, bs = 0;
+        for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; rs += data[i]; gs += data[i + 1]; bs += data[i + 2]; }
+        const ra = rs / w, ga = gs / w, ba = bs / w;
+        let dev = 0;
+        for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; dev += Math.abs(data[i] - ra) + Math.abs(data[i + 1] - ga) + Math.abs(data[i + 2] - ba); }
+        rowVar[y] = dev / w;
+      }
+      const topAvg = rowVar.slice(0, Math.max(1, Math.round(h * 0.15))).reduce((a, b) => a + b, 0) / Math.max(1, Math.round(h * 0.15));
+      if (topAvg < 6) return false; // frame looks blank/not decoded yet — retry later
+
+      let flatFrom = h;
+      for (let y = h - 1; y >= 0; y--) { if (rowVar[y] < 6) flatFrom = y; else break; }
+      const flatFrac = (h - flatFrom) / h;
+      if (flatFrac > 0.1 && flatFrac < 0.65) {
+        v.style.objectFit = 'cover';
+        v.style.objectPosition = '50% 0%';
+        v.style.aspectRatio = v.videoWidth + ' / ' + Math.round(v.videoHeight * (1 - flatFrac));
+      }
+      return true;
+    } catch (e) { return false; }
   }
 
   removeTile(id) {
