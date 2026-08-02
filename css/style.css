@@ -100,6 +100,7 @@ select{padding:8px}
 .tVolBar{display:none;width:calc(100% - 16px);margin:6px 8px;accent-color:var(--amber)}
 .tile.showVol .tVolBar{display:block}
 .tAvatar{width:100%;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-size:44px;font-weight:700;color:var(--amber);background:radial-gradient(circle at 50% 35%,#232b3d,#10141d)}
+.tAvatar[hidden]{display:none}
 .tGrip{position:absolute;right:0;bottom:0;width:20px;height:20px;cursor:nwse-resize;background:linear-gradient(135deg,transparent 50%,#4a5570 50%);border-bottom-right-radius:13px}
 .tile.mini video,.tile.mini .tAvatar,.tile.mini .tGrip,.tile.mini .tVolBar{display:none}
 .tile.mini{width:150px!important}
