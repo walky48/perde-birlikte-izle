@@ -1,6 +1,6 @@
 
 
-import { $, toast, srtToVtt } from './utils.js?v=3';
+import { $, toast, srtToVtt } from './utils.js?v=4';
 
 const SUB_CHUNK = 60000;
 

@@ -1,7 +1,7 @@
 
 
-import { $ } from './utils.js?v=3';
-import { showGestureButton } from './gesture.js?v=3';
+import { $ } from './utils.js?v=4';
+import { showGestureButton } from './gesture.js?v=4';
 
 export class TileManager {
   constructor(state) {
@@ -37,52 +37,69 @@ export class TileManager {
     const apply = () => {
       if (!v.videoWidth || !v.videoHeight) return;
       v.style.aspectRatio = v.videoWidth + ' / ' + v.videoHeight;
-      this.#cropPadding(v);
+      this.#autoCrop(v);
     };
     if (v.videoWidth) apply(); else v.addEventListener('loadedmetadata', apply, { once: true });
   }
 
+  // Bazı kamera sürücüleri kareyi düz renkli bantla dolduruyor (görüntü + alt/üst boş şerit
+  // aynı karede geliyor). Bu bant CSS ile kaldırılamaz — pikselleri analiz edip kırpmak gerekiyor.
+  // Kamera açılışta karanlık kare gönderebildiği için tek seferlik tespit yetmiyor; sürekli
+  // örnekleyip bandı bulunca kırpıyor, bant değişince (dönme, çözünürlük) kendini düzeltiyor.
+  #autoCrop(v) {
+    if (v._fitTimer) return;
+    const c = document.createElement('canvas');
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    const FLAT = 5;
+    v._fit = { top: 0, bot: 0 };
 
-  #cropPadding(v) {
-    const delays = [350, 800, 1500, 2600, 4200];
-    let i = 0;
-    const attempt = () => {
-      const ok = this.#tryCropPadding(v);
-      if (!ok && ++i < delays.length && !v.paused) setTimeout(attempt, delays[i]);
-    };
-    setTimeout(attempt, delays[0]);
-  }
+    const tick = () => {
+      if (!v.isConnected) { clearInterval(v._fitTimer); v._fitTimer = null; return; }
+      try {
+        if (!v.videoWidth || !v.videoHeight || v.readyState < 2) return;
+        const w = 64, h = Math.max(12, Math.round(w * v.videoHeight / v.videoWidth));
+        c.width = w; c.height = h;
+        ctx.drawImage(v, 0, 0, w, h);
+        const data = ctx.getImageData(0, 0, w, h).data;
+        const rowVar = new Array(h);
+        for (let y = 0; y < h; y++) {
+          let rs = 0, gs = 0, bs = 0;
+          for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; rs += data[i]; gs += data[i + 1]; bs += data[i + 2]; }
+          const ra = rs / w, ga = gs / w, ba = bs / w;
+          let dev = 0;
+          for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; dev += Math.abs(data[i] - ra) + Math.abs(data[i + 1] - ga) + Math.abs(data[i + 2] - ba); }
+          rowVar[y] = dev / w;
+        }
+        let bot = 0; while (bot < h && rowVar[h - 1 - bot] < FLAT) bot++;
+        let top = 0; while (top < h - bot && rowVar[top] < FLAT) top++;
+        let fTop = top / h, fBot = bot / h;
+        if (fTop < 0.08) fTop = 0;
+        if (fBot < 0.08) fBot = 0;
+        if (fTop + fBot > 0.75) return; // kare neredeyse tamamen boş — kamera daha açılmamış, bekle
 
-  #tryCropPadding(v) {
-    try {
-      if (!v.videoWidth || !v.videoHeight || v.readyState < 2) return false;
-      const w = 64, h = Math.max(1, Math.round(w * v.videoHeight / v.videoWidth));
-      const c = document.createElement('canvas'); c.width = w; c.height = h;
-      const ctx = c.getContext('2d', { willReadFrequently: true });
-      ctx.drawImage(v, 0, 0, w, h);
-      const { data } = ctx.getImageData(0, 0, w, h);
-      const rowVar = new Array(h);
-      for (let y = 0; y < h; y++) {
-        let rs = 0, gs = 0, bs = 0;
-        for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; rs += data[i]; gs += data[i + 1]; bs += data[i + 2]; }
-        const ra = rs / w, ga = gs / w, ba = bs / w;
-        let dev = 0;
-        for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; dev += Math.abs(data[i] - ra) + Math.abs(data[i + 1] - ga) + Math.abs(data[i + 2] - ba); }
-        rowVar[y] = dev / w;
-      }
-      const topAvg = rowVar.slice(0, Math.max(1, Math.round(h * 0.15))).reduce((a, b) => a + b, 0) / Math.max(1, Math.round(h * 0.15));
-      if (topAvg < 6) return false; // frame looks blank/not decoded yet — retry later
+        // görünür orta kısımda gerçek görüntü olduğundan emin ol, yoksa karar verme
+        let midSum = 0, midN = 0;
+        for (let y = top; y < h - bot; y++) { midSum += rowVar[y]; midN++; }
+        if (!midN || midSum / midN < FLAT + 2) return;
 
-      let flatFrom = h;
-      for (let y = h - 1; y >= 0; y--) { if (rowVar[y] < 6) flatFrom = y; else break; }
-      const flatFrac = (h - flatFrom) / h;
-      if (flatFrac > 0.1 && flatFrac < 0.65) {
+        const prev = v._fit;
+        if (Math.abs(prev.top - fTop) < 0.03 && Math.abs(prev.bot - fBot) < 0.03) return;
+        v._fit = { top: fTop, bot: fBot };
+
+        if (!fTop && !fBot) {
+          v.style.objectFit = '';
+          v.style.objectPosition = '';
+          v.style.aspectRatio = v.videoWidth + ' / ' + v.videoHeight;
+          return;
+        }
+        const keep = 1 - fTop - fBot;
         v.style.objectFit = 'cover';
-        v.style.objectPosition = '50% 0%';
-        v.style.aspectRatio = v.videoWidth + ' / ' + Math.round(v.videoHeight * (1 - flatFrac));
-      }
-      return true;
-    } catch (e) { return false; }
+        v.style.objectPosition = '50% ' + Math.round(fTop / (fTop + fBot) * 100) + '%';
+        v.style.aspectRatio = v.videoWidth + ' / ' + Math.max(1, Math.round(v.videoHeight * keep));
+      } catch (e) {}
+    };
+    v._fitTimer = setInterval(tick, 1000);
+    setTimeout(tick, 300);
   }
 
   removeTile(id) {
