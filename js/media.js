@@ -18,7 +18,7 @@ export class MediaManager {
     }
     try {
       S.local = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user', resizeMode: 'crop-and-scale' },
+        video: { facingMode: 'user', frameRate: { ideal: 30 }, resizeMode: 'crop-and-scale' },
         audio: { echoCancellation: true, noiseSuppression: true }
       });
       S.hasCam = true; S.hasMic = true;
