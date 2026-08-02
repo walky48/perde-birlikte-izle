@@ -1,7 +1,7 @@
 
 
-import { $ } from './utils.js?v=5';
-import { showGestureButton } from './gesture.js?v=5';
+import { $ } from './utils.js?v=6';
+import { showGestureButton } from './gesture.js?v=6';
 
 export class TileManager {
   constructor(state) {

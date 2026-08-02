@@ -74,6 +74,14 @@ select{padding:8px}
 #stage:fullscreen #playerWrap,#stage:-webkit-full-screen #playerWrap{gap:0}
 #stage:fullscreen #playerBox,#stage:-webkit-full-screen #playerBox{border:none;border-radius:0}
 #stage:fullscreen #tiles,#stage:-webkit-full-screen #tiles{z-index:20}
+
+/* Sahte tam ekran: element tam ekranı desteklemeyen tarayıcılar (iPhone) için */
+body.fakefs #topbar{display:none}
+body.fakefs #stage{top:0;padding:0;background:#000;z-index:45}
+body.fakefs #urlRow,body.fakefs #ctrlBar{display:none}
+body.fakefs #playerWrap{gap:0}
+body.fakefs #playerBox{border:none;border-radius:0}
+body.fakefs #tiles{z-index:20}
 #localBanner{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;background:rgba(10,13,19,.9);text-align:center;padding:24px}
 #localBanner[hidden]{display:none}
 #localBanner p{color:var(--ink);font-size:15px;line-height:1.65;max-width:440px}

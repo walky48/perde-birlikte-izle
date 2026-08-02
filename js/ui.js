@@ -1,6 +1,6 @@
 
-import { $, rid, toast, fmtT } from './utils.js?v=5';
-import { hideGestureButton, showGestureButton } from './gesture.js?v=5';
+import { $, rid, toast, fmtT } from './utils.js?v=6';
+import { hideGestureButton, showGestureButton } from './gesture.js?v=6';
 
 export class UIManager {
   constructor(state, { media, network, player, sync, subtitles, tiles }) {
@@ -173,7 +173,8 @@ export class UIManager {
   }
 
   #isFullscreen() {
-    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    return !!(document.fullscreenElement || document.webkitFullscreenElement) ||
+      document.body.classList.contains('fakefs');
   }
 
   #syncFsIcon() {
@@ -184,20 +185,27 @@ export class UIManager {
     if (this.#isFullscreen()) { this.#exitFullscreen(); return; }
 
     const stage = $('#stage');
-    if (stage.requestFullscreen) stage.requestFullscreen().catch(() => this.#fallbackVideoFullscreen());
-    else if (stage.webkitRequestFullscreen) stage.webkitRequestFullscreen();
-    else this.#fallbackVideoFullscreen();
+    if (stage.requestFullscreen) {
+      stage.requestFullscreen().catch(() => this.#setFakeFs(true));
+    } else if (stage.webkitRequestFullscreen) {
+      stage.webkitRequestFullscreen();
+      setTimeout(() => { if (!this.#isFullscreen()) this.#setFakeFs(true); }, 300);
+    } else {
+      this.#setFakeFs(true);
+    }
   }
 
-  #fallbackVideoFullscreen() {
-    const v = this.state.screen && this.state.screenBy != null ? $('#screenVid') : $('#vid');
-    if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
-    else toast('Bu tarayıcı tam ekranı desteklemiyor');
+  // iPhone'da (Chrome dahil, hepsi WebKit) element tam ekranı yok — CSS ile sayfa içi
+  // tam ekran: üst bar ve kontroller gizlenir, oynatıcı pencereyi kaplar, kameralar üstte kalır.
+  #setFakeFs(on) {
+    document.body.classList.toggle('fakefs', on);
+    this.#syncFsIcon();
   }
 
   #exitFullscreen() {
-    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
-    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    else if (document.webkitFullscreenElement && document.webkitExitFullscreen) document.webkitExitFullscreen();
+    this.#setFakeFs(false);
   }
 
   onScreenInfo(d) {

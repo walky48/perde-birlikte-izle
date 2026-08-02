@@ -1,13 +1,13 @@
 
 
-import { AppState } from './state.js?v=5';
-import { MediaManager } from './media.js?v=5';
-import { NetworkManager } from './network.js?v=5';
-import { VideoPlayer } from './player.js?v=5';
-import { TileManager } from './tiles.js?v=5';
-import { SubtitleManager } from './subtitles.js?v=5';
-import { SyncEngine } from './sync.js?v=5';
-import { UIManager } from './ui.js?v=5';
+import { AppState } from './state.js?v=6';
+import { MediaManager } from './media.js?v=6';
+import { NetworkManager } from './network.js?v=6';
+import { VideoPlayer } from './player.js?v=6';
+import { TileManager } from './tiles.js?v=6';
+import { SubtitleManager } from './subtitles.js?v=6';
+import { SyncEngine } from './sync.js?v=6';
+import { UIManager } from './ui.js?v=6';
 
 const state = new AppState();
 const media = new MediaManager(state);
